@@ -28,11 +28,11 @@
       font-family: system-ui, -apple-system, sans-serif;
     }
 
-    /* Banner del aviso.json */
+    /* Banner superior controlado por aviso.json */
     #aviso-banner {
       display: none;
       width: 100%;
-      max-width: 480px;
+      max-width: 520px;
       background-color: #fff3cd;
       color: #664d03;
       border: 1px solid #ffecb5;
@@ -44,13 +44,13 @@
       text-align: center;
     }
 
-    /* Contenedor del PDF: blanco puro y esquinas rectas */
+    /* Contenedor del PDF en blanco puro y esquinas rectas */
     .visor-pdf {
       background-color: var(--fondo-pdf);
       border-radius: 0;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
       width: 100%;
-      max-width: 480px;
+      max-width: 520px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -110,7 +110,7 @@
     }
 
     async function renderizarPDF() {
-      const pdf = await pdfjsLib.getDocument(urlPdf).promise;
+      const pdf = await pdfjsLib.getDocument(`${urlPdf}?t=${Date.now()}`).promise;
 
       for (let numPagina = 1; numPagina <= pdf.numPages; numPagina++) {
         const pagina = await pdf.getPage(numPagina);
