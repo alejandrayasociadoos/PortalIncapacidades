@@ -7,10 +7,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
   <style>
     :root {
-      /* Tonos exactos de la imagen de referencia */
       --fondo-pagina: #eceef1;
-      --fondo-tarjeta: #fafad2;
-      --radio-esquinas: 32px;
+      --fondo-pdf: #ffffff;
     }
 
     * {
@@ -23,49 +21,57 @@
       background-color: var(--fondo-pagina);
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       padding: 20px 14px;
       font-family: system-ui, -apple-system, sans-serif;
     }
 
-    .tarjeta-pdf {
-      background-color: var(--fondo-tarjeta);
-      border-radius: var(--radio-esquinas);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    /* Banner del aviso.json */
+    #aviso-banner {
+      display: none;
+      width: 100%;
+      max-width: 480px;
+      background-color: #fff3cd;
+      color: #664d03;
+      border: 1px solid #ffecb5;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* Contenedor del PDF: blanco y sin bordes redondeados */
+    .visor-pdf {
+      background-color: var(--fondo-pdf);
+      border-radius: 0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
       width: 100%;
       max-width: 480px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 14px;
     }
 
     .pagina-contenedor {
       position: relative;
       width: 100%;
-      margin-bottom: 12px;
-      border-radius: calc(var(--radio-esquinas) - 12px);
-      overflow: hidden;
-      background-color: var(--fondo-tarjeta);
-    }
-
-    .pagina-contenedor:last-child {
-      margin-bottom: 0;
+      border-radius: 0;
+      background-color: var(--fondo-pdf);
     }
 
     canvas {
       display: block;
       width: 100%;
       height: auto;
-      /* Hace que si el PDF tiene fondo blanco, se fusione con el tono crema de la tarjeta */
-      mix-blend-mode: multiply;
+      background-color: var(--fondo-pdf);
     }
 
     .textLayer {
       opacity: 1;
-      mix-blend-mode: multiply;
     }
 
     .textLayer ::selection {
@@ -75,15 +81,33 @@
 </head>
 <body>
 
-  <div class="tarjeta-pdf" id="visor-pdf"></div>
+  <div id="aviso-banner"></div>
+  <div class="visor-pdf" id="visor-pdf"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     const urlPdf = 'imagen.pdf';
+    const urlAviso = 'aviso.json';
 
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const contenedorPrincipal = document.getElementById('visor-pdf');
+    const bannerAviso = document.getElementById('aviso-banner');
+
+    // Cargar y mostrar aviso.json si está activo
+    async function cargarAviso() {
+      try {
+        const respuesta = await fetch(`${urlAviso}?t=${Date.now()}`);
+        if (!respuesta.ok) return;
+        const datos = await respuesta.json();
+        if (datos.activo && datos.texto) {
+          bannerAviso.textContent = datos.texto;
+          bannerAviso.style.display = 'block';
+        }
+      } catch (e) {
+        console.error('Error al cargar aviso.json:', e);
+      }
+    }
 
     async function renderizarPDF() {
       const pdf = await pdfjsLib.getDocument(urlPdf).promise;
@@ -109,26 +133,4 @@
 
         const divTexto = document.createElement('div');
         divTexto.className = 'textLayer';
-        divPagina.appendChild(divTexto);
-
-        const escalaPantalla = divPagina.clientWidth / viewportOriginal.width;
-        const viewportTexto = pagina.getViewport({ scale: 2 * escalaPantalla });
-        divTexto.style.setProperty('--scale-factor', 2 * escalaPantalla);
-
-        const contenidoTexto = await pagina.getTextContent();
-        pdfjsLib.renderTextLayer({
-          textContentSource: contenidoTexto,
-          container: divTexto,
-          viewport: viewportTexto,
-          textDivs: []
-        });
-      }
-    }
-
-    renderizarPDF().catch(err => {
-      contenedorPrincipal.innerHTML = '<p style="padding:20px;color:#b00;">No se pudo cargar imagen.pdf. Verifica que el archivo esté subido en el mismo repositorio.</p>';
-      console.error(err);
-    });
-  </script>
-</body>
-</html>
+        divPagina.
